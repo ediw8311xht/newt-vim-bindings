@@ -284,7 +284,7 @@ var Newt = (function () {
                 AppPrefs.selectedKey = val;
             });
         } else if (key === 'selectedTheme') {
-            pref["selectedTheme"] = val;
+            prefObj["selectedTheme"] = val;
 
             SettingsService.setSettings('prefs', prefObj).then(() => {
                 let oldVal = AppPrefs.selectedTheme;
