@@ -1,23 +1,28 @@
 let SettingsService = (function() {
+    function getPrefs() {
+	    return {
+            selectedTheme   : localStorage.getItem('theme')       || 'basic',
+			selectedKey     : localStorage.getItem('selectedKey') || 'disabled'
+        };
+
+    }
+
 	function getSettings(key) {
 		chrome.promise = new ChromePromise();
 
 		if (key === 'all') {
-			let prefs = chrome.promise.storage.sync.get('prefs').then(res => res['prefs']);
-			let customThemes = chrome.promise.storage.sync.get('customThemes').then(res => res['customThemes']);
-			let categoryColors = chrome.promise.storage.sync.get('categoryColors').then(res => res['categoryColors']);
+			let prefs           = chrome.promise.storage.sync.get('prefs').then(            res => res['prefs']          );
+			let customThemes    = chrome.promise.storage.sync.get('customThemes').then(     res => res['customThemes']   );
+			let categoryColors  = chrome.promise.storage.sync.get('categoryColors').then(   res => res['categoryColors'] );
 
 			return Promise.all([prefs, customThemes, categoryColors]).then(values => {
 				// Since the user may have not migrated settings yet, check localStorage if something is null and use that
 
 				if (values[0] == null) {
-					values[0] = {
-						selectedTheme: localStorage.getItem('theme') || 'basic',
-						keyboardShortcuts: localStorage.getItem('keyboardShortcuts') || 'disabled'
-					}
+                    values[0] = getPrefs();
 				}
-				
-				if (values[1] == null) {
+
+                if (values[1] == null) {
 					values[1] = JSON.parse(localStorage.getItem('customThemes')) || [];
 				}
 
@@ -45,7 +50,7 @@ let SettingsService = (function() {
 				// }
 
 				return {
-					prefs: values[0],
+					prefs: getPrefs(),
 					customThemes: values[1],
 					categoryColors: values[2]
 				}
@@ -59,7 +64,7 @@ let SettingsService = (function() {
 			} else {
 				return chrome.promise.storage.sync.get(key).then(res => res[key]);
 			}
-			
+
 		}
 	}
 
@@ -83,10 +88,7 @@ let SettingsService = (function() {
 
 	function migrateToChromeStorage() {
 		// Preferences
-		const prefs = {
-			selectedTheme: localStorage.getItem('theme') || 'basic',
-			keyboardShortcuts: localStorage.getItem('keyboardShortcuts') || 'disabled'
-		};
+        const prefs = get_prefs();
 
 		let prefsStore = this.setSettings('prefs', prefs);
 

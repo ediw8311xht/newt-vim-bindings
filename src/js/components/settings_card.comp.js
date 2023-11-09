@@ -1,6 +1,6 @@
 (function() {
     'use strict';
-    
+
     let template = `
         <style>
             @import url('css/shared.css');
@@ -33,23 +33,23 @@
                 text-overflow: ellipses;
                 white-space: nowrap;
             }
-            
+
             .settings-row {
                 padding: 10px 10px;
                 border-bottom: 1px solid var(--divider-color);
             }
-            
+
             .settings-row .main {
                 display: flex;
                 flex-direction: row;
             }
-            
+
             .settings-row .label {
                 flex: 1;
                 font-size: 16px;
                 line-height: 32px;
             }
-            
+
             .settings-row i {
                 margin-right: 10px;
                 cursor: pointer;
@@ -78,8 +78,8 @@
                 background-color: var(--highlight-color);
             }
         </style>
-        
         <div class='card'>
+
             <div class='card-title'>Settings</div>
             <div class='settings-row'>
                 <div class='main'>
@@ -88,26 +88,30 @@
                     <i id="iconEditTheme" class="material-icons md-24" title="Edit the currently selected theme">edit</i>
                     <i id="iconAddTheme" class="material-icons md-24" title="Build a new theme">add</i>
                     <select id='prefTheme' name='selectedTheme'>
-                        
+
                     </select>
-                    
+
                 </div>
                 <div class='description' id='descTheme'>
-                    
+
                 </div>
             </div>
+
             <div class='settings-row'>
                 <div class='main'>
                     <span class='label'>Keyboard Shortcuts</span>
-                    <select id='prefKeyboardShortcuts' name='keyboardShortcuts'>
-                        <option value='disabled' selected>Disabled</option>
-                        <option value='enabled'>Enabled</option>
+                    <i id="iconDeleteKey"   class="material-icons md-24" title="Delete the currently selected Keyboard Shortcuts.">delete</i>
+                    <i id="iconEditKey"     class="material-icons md-24" title="Edit the currently selected Keyboard Shortcut.">edit</i>
+                    <i id="iconAddKey"      class="material-icons md-24" title="Build new Keyboard Shortcuts.">add</i>
+                    <select id='prefKey' name='selectedKey'>
+
                     </select>
                 </div>
-                <div class='description' id='descKeyboardShortcuts'>
-                    
+                <div class='description' id='descKey'>
+
                 </div>
             </div>
+
 
             <p>
                 Note: All Newt settings (preferences and custom themes) are now stored using Chrome's storage sync. That means that if you change something here, it'll be reflected on your other computer. This isn't instant and can take up to a minute to sync over. Newt initially stores the settings from the first computer used after the recent app update to migrate to Chrome storage. Since this may not be what you wanted, the settings in the old system were left intact. To migrate your old settings from a different PC, open up Newt on it and <a id="btnMigrate" href="#">click here</a>.
@@ -116,42 +120,57 @@
             <span id="migrateSuccess" style="display:none; font-weight:bold;">Successfully migrated old settings from this PC!</span>
         </div>
     `;
-    
     class SettingsCard extends HTMLElement {
         constructor() {
             super();
-            
+
             this.attachShadow({mode: 'open'}).innerHTML = template;
-            
-            this.$card = this.shadowRoot.querySelector('.card');
-            this.$prefTheme = this.shadowRoot.querySelector('#prefTheme');
-            this.$prefKeyboardShortcuts = this.shadowRoot.querySelector('#prefKeyboardShortcuts');
-            this.$iconAddTheme = this.shadowRoot.querySelector('#iconAddTheme');
-            this.$iconDeleteTheme = this.shadowRoot.querySelector('#iconDeleteTheme');
-            this.$iconEditTheme = this.shadowRoot.querySelector('#iconEditTheme');
-            this.$btnMigrate = this.shadowRoot.querySelector('#btnMigrate');
-            
+            let qsels = ['.card', '#btnMigrate',
+                '#prefTheme',  '#iconAddTheme', '#iconDeleteTheme', '#iconEditTheme', 
+                '#prefKey', '#iconDeleteKey', '#iconEditKey',  '#iconAddKey'];
+            for (let i = 0; i < qsels.length; i++) {
+                console.log(qsels[i]);
+                this['$' + qsels[i].slice(1)] = this.shadowRoot.querySelector(qsels[i]);
+            }
+
             // Event listeners
+
+            // THEME
             this.$prefTheme.addEventListener('change', this.prefChanged.bind(this));
+
             this.$iconAddTheme.addEventListener('click', () => {
                 Newt.openThemeBuilder(false, this.$prefTheme.value);
             });
+
             this.$iconDeleteTheme.addEventListener('click', () => {
                 if (this.$prefTheme.value.indexOf('customtheme') > -1) {
                     Newt.showConfirmPrompt('Are you sure you want to delete this theme?', 'deleteTheme', this.$prefTheme.value);
                 }
             });
+
             this.$iconEditTheme.addEventListener('click', () => {
                 Newt.openThemeBuilder(true, this.$prefTheme.value);
             });
-            this.$btnMigrate.addEventListener('click', () => {
-                SettingsService.migrateToChromeStorage().then(() => {
-                    this.shadowRoot.querySelector('#migrateSuccess').style.display = 'block';
-                });
+
+            // KEYBOARD SHORTCUTS
+            this.$prefKey.addEventListener('change', this.prefChanged.bind(this));
+
+            this.$iconAddKey.addEventListener('click', () => {
+                Newt.openThemeBuilder(false, this.$prefKey.value);
             });
 
-            this.$prefKeyboardShortcuts.addEventListener('change', this.prefChanged.bind(this));
-            
+            this.$iconDeleteKey.addEventListener('click', () => {
+                if (this.$prefKey.value.indexOf('customkey') > -1) {
+                    Newt.showConfirmPrompt('Are you sure you want to delete this key?', 'deleteKey', this.$prefKey.value);
+                }
+            });
+
+            this.$iconEditKey.addEventListener('click', () => {
+                Newt.openKeyBuilder(true, this.$prefKey.value);
+            });
+
+
+            // PROPOGATE THEMES
             let self = this;
 
             let allThemes = AppPrefs.baseThemes.concat(AppPrefs.customThemes);
@@ -159,19 +178,37 @@
                 let option = document.createElement('option');
                 option.value = theme.id;
                 option.innerText = theme.name;
-
                 self.$prefTheme.appendChild(option);
             });
 
             this.$prefTheme.value = AppPrefs.selectedTheme;
-            this.$prefKeyboardShortcuts.value = AppPrefs.keyboardShortcuts;
+
+            // PROPOGATE KEYS
+            let allKeys = AppPrefs.baseKeys.concat(AppPrefs.customKeys);
+            allKeys.forEach(function(key) {
+                let option = document.createElement('option');
+                option.value = key.id;
+                option.innerText = key.name;
+                self.$prefKey.appendChild(option);
+            });
+
+            this.$prefKey.value = AppPrefs.selectedKey;
+
+            // OTHER
+
+            this.$btnMigrate.addEventListener('click', () => {
+                SettingsService.migrateToChromeStorage().then(() => {
+                    this.shadowRoot.querySelector('#migrateSuccess').style.display = 'block';
+                });
+            });
+
 
             this.updateIcons();
         }
-        
+
         prefChanged(ev) {
             let element = ev.target;
-            
+
             Newt.updatePref(element.name, element.value);
 
             this.updateIcons();
@@ -184,6 +221,13 @@
             } else {
                 this.$iconDeleteTheme.style.display = 'none';
                 this.$iconEditTheme.style.display = 'none';
+            }
+            if (this.$prefKey.value.includes('customkey')) {
+                this.$iconDeleteTheme.style.display = 'block';
+                this.$iconEditTheme.style.display = 'block';
+            } else {
+                this.$iconDeleteKey.style.display = 'none';
+                this.$iconEditKey.style.display = 'none';
             }
         }
 
@@ -208,7 +252,28 @@
             Newt.updatePref('selectedTheme', AppPrefs.selectedTheme);
         }
 
+        refreshKeys() {
+            while (this.$prefKey.lastChild) {
+                this.$prefKey.removeChild(this.$prefKey.lastChild);
+            }
+
+            let self = this;
+            let allKeys = AppPrefs.baseKeys.concat(AppPrefs.customKeys);
+            allKeys.forEach(function(key) {
+                let option = document.createElement('option');
+                option.value = key.id;
+                option.innerText = key.name;
+
+                self.$prefKey.appendChild(option);
+            });
+
+            this.$prefKey.value = AppPrefs.selectedKey;
+            this.updateIcons();
+
+            Newt.updatePref('selectedKey', AppPrefs.selectedKey);
+        }
+
     }
-    
+
     customElements.define('settings-card', SettingsCard);
 })();

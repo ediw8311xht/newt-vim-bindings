@@ -29,7 +29,7 @@
 				var create = chrome.contextMenus.create({"id": card.id, "title": card.title, "contexts":["page", "link"], parentId: "addToNewt", "onclick": genericOnClick});
 				card.menuId = create;
 				// console.log("Create menu item: " + create);
-			}		
+			}
 		}).catch(function(error) {
 			console.log("Error: " + error);
 		});

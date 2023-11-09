@@ -102,16 +102,14 @@
         constructor() {
             super();
             
+            let cl = ['.card', '.icon', '.title', '.disabled', '.description', '#btnStore', '#btnLaunch'];
+
             this.attachShadow({mode: 'open'}).innerHTML = template;
             
-            this.$card = this.shadowRoot.querySelector('.card');
-            this.$icon = this.shadowRoot.querySelector('.icon');
-            this.$title = this.shadowRoot.querySelector('.title');
-            this.$disabled = this.shadowRoot.querySelector('.disabled');
-            this.$description = this.shadowRoot.querySelector('.description');
-            this.$btnStore = this.shadowRoot.querySelector('#btnStore');
-            this.$btnLaunch = this.shadowRoot.querySelector('#btnLaunch');
-            
+            for (let i = 0; i < cl.length; i++) {
+                this['$'+cl[i].slice(1)] = this.shadowRoot.querySelector(cl[i]);
+            }
+
             let self = this;
             
             this.$btnStore.addEventListener('click', function() {

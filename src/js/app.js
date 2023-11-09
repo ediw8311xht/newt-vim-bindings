@@ -1,6 +1,6 @@
 let AppPrefs = {
     selectedTheme: 'basic',
-    keyboardShortcuts: 'disabled',
+    selectedKey: 'disabled',
     baseThemes: [],
     customThemes: [],
     categoryColors: {}
@@ -64,6 +64,34 @@ var Newt = (function () {
     }
 
     function getAppPrefs() {
+
+        let baseKeys = [
+            {
+                name: 'Disabled',
+                id:   'disabled',
+                keys: []
+            },
+            {
+                name: 'Programming',
+                id:   'programming',
+                keys: [
+                    {name: 'h' , val: 'Left' },
+                    {name: 'j' , val: 'Down' },
+                    {name: 'k' , val: 'Up'   },
+                    {name: 'l' , val: 'Right'},
+                ]
+            },
+            {
+                name: 'Basic',
+                id:   'basic',
+                keys: [
+                    {name: 'ArrowLeft' , val: 'Left'  },
+                    {name: 'ArrowDown' , val: 'Down'  },
+                    {name: 'ArrowUp'   , val: 'Up'    },
+                    {name: 'ArrowRight', val: 'Right' },
+                ]
+            }
+        ];
         let baseThemes = [
             {
                 name: 'Basic',
@@ -227,8 +255,12 @@ var Newt = (function () {
             // console.log('settings', res);
 
             AppPrefs = {
-                selectedTheme: res.prefs.selectedTheme || 'basic',
-                keyboardShortcuts: res.prefs.keyboardShortcuts || 'disabled',
+                selectedTheme: res.prefs.selectedTheme || 'basic'    ,
+                selectedKey  : res.prefs.selectedKey   || 'disabled' ,
+
+                baseKeys: baseKeys,
+                customKeys: res.customKeys || [],
+
                 baseThemes: baseThemes,
                 customThemes: res.customThemes || [],
                 categoryColors: res.categoryColors || {}
@@ -241,20 +273,18 @@ var Newt = (function () {
     function updatePref(key, val) {
         // console.log('updatePref', key, val);
 
-        if (key === 'keyboardShortcuts') {
-            let prefObj = {
-                selectedTheme: AppPrefs.selectedTheme,
-                keyboardShortcuts: val
-            }
+        let prefObj = {
+            selectedKey  : AppPrefs.selectedKey,
+            selectedTheme: AppPrefs.selectedTheme,
+        };
+        if (key === 'selectedKey') {
+            prefObj["selectedKey"] = val;
 
             SettingsService.setSettings('prefs', prefObj).then(() => {
-                AppPrefs.keyboardShortcuts = val;
+                AppPrefs.selectedKey = val;
             });
         } else if (key === 'selectedTheme') {
-            let prefObj = {
-                selectedTheme: val,
-                keyboardShortcuts: AppPrefs.keyboardShortcuts
-            }
+            pref["selectedTheme"] = val;
 
             SettingsService.setSettings('prefs', prefObj).then(() => {
                 let oldVal = AppPrefs.selectedTheme;
@@ -798,47 +828,47 @@ var Newt = (function () {
     function handleKeyPress(ev) {
         // console.log('keypress', ev);
 
-        if (AppPrefs.keyboardShortcuts === 'disabled') {
+        if (AppPrefs.selectedKey === 'disabled') {
             return;
         }
+        else {
+            let targetNode = ev.target.nodeName.toLowerCase();
+            if (targetNode == "prompt-add-card" ||
+                targetNode == 'input' ||
+                targetNode == 'settings-card' ||
+                targetNode == 'color-row') {
+                return;
+            }
+            switch (ev.code) {
+                case 'ArrowUp':
+                case 'ArrowDown':
+                case 'ArrowLeft':
+                case 'ArrowRight':
+                    ev.preventDefault();
+                    navigateCardMap(ev.code);
+                    break;
+                case 'Enter':
+                    if (CardMap.currentActive) {
+                        let item = CardMap.currentActive;
 
-        let targetNode = ev.target.nodeName.toLowerCase();
-        if (targetNode == "prompt-add-card" ||
-            targetNode == 'input' ||
-            targetNode == 'settings-card' ||
-            targetNode == 'color-row') {
-            return;
-        }
-
-        switch (ev.code) {
-            case 'ArrowUp':
-            case 'ArrowDown':
-            case 'ArrowLeft':
-            case 'ArrowRight':
-                ev.preventDefault();
-                navigateCardMap(ev.code);
-                break;
-            case 'Enter':
-                if (CardMap.currentActive) {
-                    let item = CardMap.currentActive;
-
-                    if (CardMap.currentTab === 'apps') {
-                        if (item.row.data.appLaunchUrl) {
-                            ChromeService.updateTab(item.row.data.appLaunchUrl);
+                        if (CardMap.currentTab === 'apps') {
+                            if (item.row.data.appLaunchUrl) {
+                                ChromeService.updateTab(item.row.data.appLaunchUrl);
+                            } else {
+                                ChromeService.openApp(item.row.data.id);
+                            }
                         } else {
-                            ChromeService.openApp(item.row.data.id);
+                            let url = item.row.url || item.row.data.url;
+                            ChromeService.updateTab(url);
                         }
-                    } else {
-                        let url = item.row.url || item.row.data.url;
-                        ChromeService.updateTab(url);
                     }
-                }
-                break;
-            case 'Escape':
-                if (CardMap.currentActive) {
-                    CardMap.currentActive.row.highlight = false;
-                    CardMap.currentActive = null;
-                }
+                    break;
+                case 'Escape':
+                    if (CardMap.currentActive) {
+                        CardMap.currentActive.row.highlight = false;
+                        CardMap.currentActive = null;
+                    }
+            }
         }
     }
 
