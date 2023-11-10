@@ -126,7 +126,7 @@
 
             this.attachShadow({mode: 'open'}).innerHTML = template;
             let qsels = ['.card', '#btnMigrate',
-                '#prefTheme',  '#iconAddTheme', '#iconDeleteTheme', '#iconEditTheme', 
+                '#prefTheme',  '#iconAddTheme', '#iconDeleteTheme', '#iconEditTheme',
                 '#prefKey', '#iconDeleteKey', '#iconEditKey',  '#iconAddKey'];
             for (let i = 0; i < qsels.length; i++) {
                 console.log(qsels[i]);

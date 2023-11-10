@@ -1,8 +1,13 @@
 let AppPrefs = {
     selectedTheme: 'basic',
     selectedKey: 'disabled',
+
+    baseKeys: [],
+    customKeys: {},
+
     baseThemes: [],
     customThemes: [],
+
     categoryColors: {}
 };
 
@@ -52,13 +57,13 @@ var Newt = (function () {
         });
 
         // Popup Menu
-        document.querySelector('#btnAddCard').addEventListener('click', () => { hideMenu(); showAddCardPrompt(); });
-        document.querySelector('#btnAbout').addEventListener('click', () => { hideMenu(); changeTab('about'); });
-        document.querySelector('#btnSettings').addEventListener('click', () => { hideMenu(); changeTab('settings'); });
+        document.querySelector('#btnAddCard').addEventListener(     'click', () => { hideMenu(); showAddCardPrompt(); });
+        document.querySelector('#btnAbout').addEventListener(       'click', () => { hideMenu(); changeTab('about'); });
+        document.querySelector('#btnSettings').addEventListener(    'click', () => { hideMenu(); changeTab('settings'); });
 
         // Theme Builder
-        document.querySelector('#btnSaveTheme').addEventListener('click', saveCustomTheme);
-        document.querySelector('#btnCancelTheme').addEventListener('click', cancelCustomTheme);
+        document.querySelector('#btnSaveTheme').addEventListener(   'click', saveCustomTheme    );
+        document.querySelector('#btnCancelTheme').addEventListener( 'click', cancelCustomTheme  );
 
         changeTab('bookmarks');
     }
@@ -252,18 +257,18 @@ var Newt = (function () {
         ];
 
         let settings = SettingsService.getSettings('all').then((res) => {
-            // console.log('settings', res);
+            console.log('settings', res);
 
             AppPrefs = {
-                selectedTheme: res.prefs.selectedTheme || 'basic'    ,
-                selectedKey  : res.prefs.selectedKey   || 'disabled' ,
+                selectedTheme   : res.prefs.selectedTheme || 'basic'    ,
+                selectedKey     : res.prefs.selectedKey   || 'disabled' ,
 
-                baseKeys: baseKeys,
-                customKeys: res.customKeys || [],
+                baseKeys        : baseKeys,
+                customKeys      : res.customKeys          || [],
 
-                baseThemes: baseThemes,
-                customThemes: res.customThemes || [],
-                categoryColors: res.categoryColors || {}
+                baseThemes      : baseThemes,
+                customThemes    : res.customThemes        || [],
+                categoryColors  : res.categoryColors      || {}
             };
 
             changeTheme(AppPrefs.selectedTheme);
@@ -303,9 +308,9 @@ var Newt = (function () {
 
     function changeTheme(theme) {
         // console.log('changeTheme', theme, AppPrefs.selectedTheme);
-        let themeID = theme || AppPrefs.selectedTheme;
-        let allThemes = AppPrefs.baseThemes.concat(AppPrefs.customThemes);
-        let selectedTheme = allThemes.find(theme => { return theme.id == themeID });
+        let themeID         = theme || AppPrefs.selectedTheme;
+        let allThemes       = AppPrefs.baseThemes.concat(AppPrefs.customThemes);
+        let selectedTheme   = allThemes.find(theme => { return theme.id == themeID });
 
         if (!selectedTheme) {
             AppPrefs.selectedTheme = 'basic';
@@ -769,6 +774,7 @@ var Newt = (function () {
 
     function cancelCustomTheme() {
         document.querySelector('#inpThemeName').value = '';
+        console.log("cancelled");
         EditingTheme = false;
         EditingThemeID = null;
 
@@ -1038,9 +1044,9 @@ var Newt = (function () {
 
         if (data.title) {
             ChromeService.updateBookmark(data.cardID, data.title).then(function (res) {
-                let cardData = card.data;
-                cardData.title = data.title;
-                card.data = cardData;
+                let cardData    = card.data;
+                cardData.title  = data.title;
+                card.data       = cardData;
             });
         }
 
