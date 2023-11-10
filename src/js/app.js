@@ -1121,22 +1121,23 @@ var Newt = (function () {
     }
 
     return ({
-        init: init,
-        changeTab: changeTab,
-        updatePref: updatePref,
-        toggleMenu: toggleMenu,
-        hideMenu: hideMenu,
-        hideAddCardPrompt: hideAddCardPrompt,
-        showConfirmPrompt: showConfirmPrompt,
-        hideConfirmPrompt: hideConfirmPrompt,
-        closeAllPopups: closeAllPopups,
-        createNewCard: createNewCard,
-        confirmDeleteCard: confirmDeleteCard,
-        openThemeBuilder: openThemeBuilder,
-        deleteTheme: deleteTheme,
-        showCardMenu: showCardMenu,
-        hideCardMenu: hideCardMenu,
-        saveEditedCard: saveEditedCard
+        init                : init              ,
+        changeTab           : changeTab         ,
+        updatePref          : updatePref        ,
+        toggleMenu          : toggleMenu        ,
+        hideMenu            : hideMenu          ,
+        hideAddCardPrompt   : hideAddCardPrompt ,
+        showConfirmPrompt   : showConfirmPrompt ,
+        hideConfirmPrompt   : hideConfirmPrompt ,
+        closeAllPopups      : closeAllPopups    ,
+        createNewCard       : createNewCard     ,
+        confirmDeleteCard   : confirmDeleteCard ,
+        openThemeBuilder    : openThemeBuilder  ,
+        deleteTheme         : deleteTheme       ,
+        deleteKey           : deleteKey         ,
+        showCardMenu        : showCardMenu      ,
+        hideCardMenu        : hideCardMenu      ,
+        saveEditedCard      : saveEditedCard
     })
 })();
 
