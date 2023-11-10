@@ -3,17 +3,18 @@ let SettingsService = (function() {
 		chrome.promise = new ChromePromise();
 
 		if (key === 'all') {
-			let prefs = chrome.promise.storage.sync.get('prefs').then(res => res['prefs']);
-			let customThemes = chrome.promise.storage.sync.get('customThemes').then(res => res['customThemes']);
-			let categoryColors = chrome.promise.storage.sync.get('categoryColors').then(res => res['categoryColors']);
+			let prefs           = chrome.promise.storage.sync.get('prefs').then(res => res['prefs']);
+			let customThemes    = chrome.promise.storage.sync.get('customThemes').then(res => res['customThemes']);
+			let categoryColors  = chrome.promise.storage.sync.get('categoryColors').then(res => res['categoryColors']);
+			let customKeys      = chrome.promise.storage.sync.get('customKeys').then(res => res['customKeys']);
 
-			return Promise.all([prefs, customThemes, categoryColors]).then(values => {
+			return Promise.all([prefs, customThemes, categoryColors, customKeys]).then(values => {
 				// Since the user may have not migrated settings yet, check localStorage if something is null and use that
 
 				if (values[0] == null) {
 					values[0] = {
-						selectedTheme   : localStorage.getItem('theme')       || 'basic',
-						selectedKey     : localStorage.getItem('selectedKey') || 'disabled'
+						selectedTheme   : localStorage.getItem('theme')             || 'basic',
+						selectedKey     : localStorage.getItem('keyboardShortcuts') || 'disabled'
 					}
 				}
 
@@ -43,11 +44,13 @@ let SettingsService = (function() {
 				// if (values[2] == null) {
 					values[2] = JSON.parse(localStorage.getItem('categoryColors')) || {};
 				// }
+                values[3]     = JSON.parse(localStorage.getItem('customKeys')) || [];
 
 				return {
 					prefs: values[0],
 					customThemes: values[1],
-					categoryColors: values[2]
+					categoryColors: values[2],
+                    customKeys:   values[3],
 				}
 			});
 		} else {
@@ -88,17 +91,21 @@ let SettingsService = (function() {
 			selectedKey     : localStorage.getItem('selectedKey') || 'disabled'
 		};
 
-		let prefsStore = this.setSettings('prefs', prefs);
+		let prefsStore          = this.setSettings('prefs', prefs);
 
 		// Custom themes
-		let customThemes = JSON.parse(localStorage.getItem('customThemes')) || [];
-		let customThemesStore = this.setSettings('customThemes', customThemes);
+		let customThemes        = JSON.parse(localStorage.getItem('customThemes')) || [];
+		let customThemesStore   = this.setSettings('customThemes', customThemes);
+
+		// Custom keys
+		let customKeys          = JSON.parse(localStorage.getItem('customKeys')) || [];
+		let customKeysStore     = this.setSettings('customKeys', customKeys);
 
 		// Category colors
-		let categoryColors = JSON.parse(localStorage.getItem('categoryColors')) || {};
+		let categoryColors      = JSON.parse(localStorage.getItem('categoryColors')) || {};
 		let categoryColorsStore = this.setSettings('categoryColors', categoryColors);
 
-		return Promise.all([prefsStore, customThemesStore, categoryColorsStore]).then(() => {
+		return Promise.all([prefsStore, customThemesStore, categoryColorsStore, customKeysStore]).then(() => {
 			console.log('Settings migration completed');
 			return true;
 		});
@@ -110,9 +117,10 @@ let SettingsService = (function() {
 		let prefs = chrome.promise.storage.sync.get('prefs').then(res => res['prefs']);
 		let customThemes = chrome.promise.storage.sync.get('customThemes').then(res => res['customThemes']);
 		let categoryColors = chrome.promise.storage.sync.get('categoryColors').then(res => res['categoryColors']);
+		let customKeys = chrome.promise.storage.sync.get('customKeys').then(res => res['customKeys']);
 
-		Promise.all([prefs, customThemes, categoryColors]).then(values => {
-			if (values[0] == null && values[1] == null && values[2] == null) {
+		Promise.all([prefs, customThemes, categoryColors, customKeys]).then(values => {
+			if (values[0] == null && values[1] == null && values[2] == null && values[3] == null) {
 				console.log('Chrome.storage not used yet. Migrating...');
 				this.migrateToChromeStorage();
 			} else {
